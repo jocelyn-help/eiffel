@@ -18,18 +18,14 @@ inherit
 
 	ARGUMENTS
 
-
-	MSG_CONSTANTS
-	ERROR_CODES
 	EXCEPTIONS
 	EXECUTION_ENVIRONMENT
 		rename
 			command_line as env_command_line,
 			launch as env_launch
 		end
+
 	LOG_PRIORITY_CONSTANTS
---	LOGGING_I
-	PAGE_TEMPLATES
 	DEFAULTS
 
 	MEMORY
@@ -90,7 +86,8 @@ feature {NONE} -- Initialization
 
 			cfg.use_testing_ws := index_of_word_option ("t") > 0
 			cfg.is_utc_set := index_of_word_option ("u") > 0
---			check_remws_session (cfg)
+
+			check_remws_session (cfg)
 		end
 
 	check_remws_session (cfg: COLLECT_CONFIGURATION)
