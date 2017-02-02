@@ -1,6 +1,5 @@
 note
 	description: "Summary description for {ERROR_RESPONSE}."
-	author: ""
 	date: "$Date$"
 	revision: "$Revision$"
 
@@ -76,37 +75,40 @@ feature -- Conversion
 
 	to_json: STRING
 			-- json representation
+		local
+			s: like json_representation
 		do
 			json_representation.wipe_out
+			s := json_representation
 
-			json_representation.append ("{")
-			json_representation.append ("%"header%": {")
-			json_representation.append ("%"id%": " + id.out)
-			json_representation.append (",%"parameters_number%": " + internal_error_parnum.out)
-			json_representation.append ("},")
-			json_representation.append ("%"data%": {")
-			json_representation.append ("%"outcome%": " + outcome.out)
-			json_representation.append (",%"message%": %"" + message + "%"")
-			json_representation.append ("}")
-			json_representation.append ("}")
+			s.append_character ('{')
+			s.append ("%"header%": {")
+			s.append ("%"id%": "); s.append_integer (id)
+			s.append (",%"parameters_number%": "); s.append_integer (internal_error_parnum)
+			s.append ("},")
+			s.append ("%"data%": {")
+			s.append ("%"outcome%": "); s.append_integer (outcome)
+			s.append (",%"message%": %""); s.append (message); s.append_character ('%"')
+			s.append_character ('}')
+			s.append_character ('}')
 
-			Result := json_representation
+			Result := s
 		end
 
-	from_xml(xml: STRING; parser: XML_STANDARD_PARSER)
+	from_xml (xml: STRING; parser: XML_STANDARD_PARSER)
 			-- Parse XML message
-	local
-		--parser: XML_STANDARD_PARSER
-		--factory: XML_PARSER_FACTORY
-	do
-		--create factory
+		local
+			--parser: XML_STANDARD_PARSER
+			--factory: XML_PARSER_FACTORY
+		do
+			--create factory
 
-		--parser := factory.new_standard_parser
-		parser.set_callbacks (Current)
-		set_associated_parser (parser)
-		parser.parse_from_string (xml)
-		parser.reset
-	end
+			--parser := factory.new_standard_parser
+			parser.set_callbacks (Current)
+			set_associated_parser (parser)
+			parser.parse_from_string (xml)
+			parser.reset
+		end
 
 	to_xml: STRING
 			-- xml representation
@@ -284,8 +286,5 @@ feature {NONE} -- Implementation
 			-- used by `XML_CALLBACKS' features
 	content:             STRING
 			-- used by `XML_CALLBACKS' features
-
-invariant
-	invariant_clause: True -- Your invariant here
 
 end

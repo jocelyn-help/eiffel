@@ -9,7 +9,7 @@ class
 
 feature -- Constants
 
-	remws_port:       INTEGER = 80
+	remws_port:       INTEGER = 8088
 			-- remws listening port
 
 	remws_uri:        STRING = "http://tempuri.org"

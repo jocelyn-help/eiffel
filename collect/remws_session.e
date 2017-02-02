@@ -8,19 +8,23 @@ class
 	REMWS_SESSION
 
 inherit
+	SHARED_COLLECT_CONFIGURATION
+
+	SHARED_APP_LOGGER
+
 	ERROR_CODES
 
 	LOG_PRIORITY_CONSTANTS
+
+	DAY_LIGHT_TIME_UTILITIES
 
 create
 	make
 
 feature {NONE} -- Initialization
 
-	make (a_username, a_password: READABLE_STRING_8; cfg: COLLECT_APPLICATION_CONFIG; a_logger: APP_LOGGER)
+	make (a_username, a_password: READABLE_STRING_8)
 		do
-			config := cfg
-			logger := a_logger
 			username := a_username
 			password := a_password
 
@@ -44,10 +48,6 @@ feature {NONE} -- Initialization
 
 feature -- Access
 
-	config: COLLECT_APPLICATION_CONFIG
-
-	logger: APP_LOGGER
-
 	username: READABLE_STRING_8
 	password: READABLE_STRING_8
 
@@ -70,7 +70,10 @@ feature -- Access: session
 	last_token_file_path: PATH
 			-- last token file name full path
 		do
-			Result := config.location.extended ("last_token")
+			separate config as cfg do
+				create Result.make_from_separate (cfg.location)
+				Result := Result.extended ("last_token")
+			end
 		end
 
 feature -- Parsing
@@ -81,54 +84,6 @@ feature -- Parsing
 			-- Global xml parser		
 
 feature -- Status report
-
-	check_day_light_time_saving (dt: DATE_TIME): DATE_TIME_DURATION
-			-- Check for day light time savin on `dt'
-		local
-			l_date:        DATE
-			l_month:       INTEGER
-			l_day:         INTEGER
-			l_dow:         INTEGER
-			l_prev_sunday: INTEGER
-			l_one_hour:    DATE_TIME_DURATION
-			l_two_hours:   DATE_TIME_DURATION
-		do
-			create l_one_hour.make (0, 0, 0, 1, 0, 0)
-			create l_two_hours.make (0, 0, 0, 2, 0, 0)
-
-			l_day   := dt.day
-			l_month := dt.month
-
-			l_date  := dt.date;
-			l_dow   := dt.date.day_of_the_week
-
-
-			create Result.make (0, 0, 0, 1, 0, 0)
-
-			if l_month < 3 or l_month > 10 then
-				-- Non siamo in ora legale quindi l'offset rispetto a UTC è di un'ora
-				Result := l_one_hour
-			elseif l_month > 3 and l_month < 10 then
-				-- Siamo in ora legale quindi l'offset rispetto a UTC è di due ore
-				Result := l_one_hour
-			else
-				l_prev_sunday := dt.day - l_dow
-				if l_month = 3 then
-					if l_prev_sunday >= 25 then
-						Result := l_one_hour
-					else
-						Result := l_one_hour
-					end
-				end
-				if l_month = 10 then
-					if l_prev_sunday < 25 then
-						Result := l_one_hour
-					else
-						Result := l_one_hour
-					end
-				end
-			end
-		end
 
 	is_token_expired: BOOLEAN
 			-- Tells if `token' is expired
@@ -141,7 +96,7 @@ feature -- Status report
 
 			l_offset := check_day_light_time_saving (l_current_dt)
 
-			if config.is_utc_set then
+			if is_utc_set then
 				Result := l_current_dt + l_offset > token.expiry
 			else
 				Result := l_current_dt > token.expiry
@@ -236,7 +191,7 @@ feature -- Basic operations
 
 			l_offset := check_day_light_time_saving (l_current_dt)
 
-			if config.use_testing_ws then
+			if use_testing_ws then
 				create l_interval.make_definite  (0, 0, -28, 0)
 			else
 				create l_interval.make_definite  (0, 0, -58, 0)
@@ -258,14 +213,12 @@ feature -- Logger
 	debug_log_display (a_string: STRING; to_file, to_display: BOOLEAN)
 			-- Combined file and display log
 		do
-			if attached logger as l_logger then
-				l_logger.log_display (Current, a_string, log_debug, to_file, to_display)
-			end
+			log_display (a_string, log_debug, to_file, to_display)
 		end
 
-feature {COLLECT_APPLICATION} -- Network IO
+feature {COLLECT_EXECUTION} -- Network IO
 
-	init_curl_handle(a_curl_easy: CURL_EASY_EXTERNALS; a_curl: CURL_EXTERNALS; a_request: REQUEST_I): POINTER
+	init_curl_handle (a_curl_easy: CURL_EASY_EXTERNALS; a_curl: CURL_EXTERNALS; a_request: REQUEST_I): POINTER
 			-- Create a curl handle and setup it
 		require
 			a_curl_easy_not_void: a_curl_easy /= Void
@@ -278,7 +231,7 @@ feature {COLLECT_APPLICATION} -- Network IO
 			--print( "cURL handle init%N")
 			if a_curl_easy.is_dynamic_library_exists then
 				Result := a_curl_easy.init
-				if config.use_testing_ws then
+				if use_testing_ws then
 					a_curl_easy.setopt_string  (Result, {CURL_OPT_CONSTANTS}.curlopt_url,       a_request.ws_test_url)
 				else
 					a_curl_easy.setopt_string  (Result, {CURL_OPT_CONSTANTS}.curlopt_url,       a_request.ws_url)
@@ -381,8 +334,6 @@ feature {NONE} -- cURL
 			-- Post error code
 	error_message:  STRING
 			-- Post error message
---	use_testing_ws: BOOLEAN
---			-- Must use the testing web service
 
 	internal_error: ERROR_RESPONSE once create Result.make end
 

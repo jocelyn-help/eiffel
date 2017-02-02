@@ -509,7 +509,7 @@ feature -- XML Callbacks
 	on_attribute (a_namespace: detachable READABLE_STRING_32; a_prefix: detachable READABLE_STRING_32; a_local_part: READABLE_STRING_32; a_value: READABLE_STRING_32)
 			-- Start of attribute.
 		local
-			a_sensor_rt_data: SENSOR_REALTIME_RESPONSE_DATA
+--			a_sensor_rt_data: SENSOR_REALTIME_RESPONSE_DATA
 		do
 			log ("XML callbacks on_attribute called. Got an attribute", log_debug)
 			if attached a_namespace as namespace then

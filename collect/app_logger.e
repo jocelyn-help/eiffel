@@ -9,6 +9,9 @@ class
 
 inherit
 	LOGGING_I
+		rename
+			log as process_log
+		end
 
 	LOG_PRIORITY_CONSTANTS
 
@@ -56,7 +59,7 @@ feature -- Change
 
 feature -- Basic operation
 
-	log (a_string: STRING; priority: INTEGER)
+	process_log (a_string: STRING; priority: INTEGER)
 			-- Logs `a_string'
 		do
 			if attached logger as l_logger then
@@ -72,19 +75,29 @@ feature -- Basic operation
 			end
 		end
 
-	log_display (obj: detachable ANY; a_string: STRING; priority: INTEGER; to_file, to_display: BOOLEAN)
+	log (a_string: separate STRING; priority: INTEGER)
+			-- Logs `a_string'
+		local
+			s: STRING
+		do
+			create s.make_from_separate (a_string)
+			process_log (s, priority)
+		end
+
+	log_display (obj: detachable separate ANY; a_string: separate STRING; priority: INTEGER; to_file, to_display: BOOLEAN)
 			-- Combined file and display log
 		local
 			l_string: STRING
 		do
+			create l_string.make_from_separate (a_string)
 			if attached {EXCEPTIONS} obj as e and then attached e.class_name as cn then
-				l_string := "{" + cn + "} " + a_string
+				l_string.prepend ("{" + cn + "} ")
 			else
-				l_string := "{NO_CLASS_NAME} " + a_string
+				l_string.prepend ("{NO_CLASS_NAME} ")
 			end
 
 			if to_file then
-				log (l_string, priority)
+				process_log (l_string, priority)
 			end
 			if to_display then
 				io.put_string (l_string)

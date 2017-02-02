@@ -154,7 +154,7 @@ feature -- Conversion
 			-- Parse XML message
 	local
 		--parser: XML_STANDARD_PARSER
-		factory: XML_PARSER_FACTORY
+--		factory: XML_PARSER_FACTORY
 	do
 		--create factory
 		municipalities_list.wipe_out
