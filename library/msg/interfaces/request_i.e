@@ -37,6 +37,16 @@ feature -- Basic operations
 		deferred
 		end
 
+	apply_http_headers_to (a_client_request_context: HTTP_CLIENT_REQUEST_CONTEXT)
+			-- Generate http header for the `Current' message
+		require
+			a_client_request_context_attached: a_client_request_context /= Void
+		do
+			a_client_request_context.add_header_line ("content-type: text/xml;charset=utf-8")
+			a_client_request_context.add_header_line (soap_action_header)
+			a_client_request_context.add_header_line ("Accept-Encoding: gzip, deflate")
+		end		
+
 	generate_http_headers (a_curl: CURL_EXTERNALS): POINTER
 			-- Generate http header for the `Current' message
 		require

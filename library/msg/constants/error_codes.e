@@ -34,6 +34,12 @@ feature
 	err_no_curl_easy_library:      INTEGER = 3
 			-- curl easy dynamic library not present error code
 
+	err_request_failure:      INTEGER = 4
+			-- request failed
+
+	msg_request_failure:      STRING  = "http request failed!"
+			-- request failed!
+
 	msg_no_curl_easy_library:      STRING  = "Curl easy dynamic library not present"
 			-- curl easy dynamic library not present error message
 
