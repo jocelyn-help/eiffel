@@ -14,8 +14,6 @@ inherit
 
 	ERROR_CODES
 
-	LOG_PRIORITY_CONSTANTS
-
 	DAY_LIGHT_TIME_UTILITIES
 
 create
@@ -121,11 +119,11 @@ feature -- Basic operations
 
 				l_xml_str := post (login_request)
 				if l_xml_str /= Void then
-					debug_log_display("do_login_response: " + l_xml_str, True, False)
+					log_debug_display ("do_login_response: " + l_xml_str, True, False)
 					login_response.from_xml (l_xml_str, xml_parser)
 
-					debug_log_display("login outcome: " + login_response.outcome.out, True, True)
-					debug_log_display("login message: " + login_response.message,     True, True)
+					log_debug_display ("login outcome: " + login_response.outcome.out, True, True)
+					log_debug_display ("login message: " + login_response.message,     True, True)
 					if login_response.outcome = success then
 						token.id.copy (login_response.token.id)
 						token.expiry.copy (login_response.token.expiry)
@@ -144,7 +142,7 @@ feature -- Basic operations
 
 					l_xml_str.wipe_out
 				else
-					debug_log_display("do_login_response: FAILED !", True, False)
+					log_debug_display ("do_login_response: FAILED !", True, False)
 				end
 			else
 				is_logged_in := False
@@ -162,14 +160,14 @@ feature -- Basic operations
 
 				l_xml_str := post (logout_request)
 				if l_xml_str /= Void then
-					debug_log_display("do_logout response " + l_xml_str, True, False)
-					debug_log_display("login outcome: " + logout_response.outcome.out, True, True)
-					debug_log_display("login message: " + logout_response.message,     True, True)
+					log_debug_display ("do_logout response " + l_xml_str, True, False)
+					log_debug_display ("login outcome: " + logout_response.outcome.out, True, True)
+					log_debug_display ("login message: " + logout_response.message,     True, True)
 
 					logout_response.from_xml (l_xml_str, xml_parser)
 					l_xml_str.wipe_out
 				else
-					debug_log_display("do_logout response: FAILED !", True, False)
+					log_debug_display ("do_logout response: FAILED !", True, False)
 				end
 
 				if logout_response.outcome = success then
@@ -208,20 +206,11 @@ feature -- Basic operations
 			end
 		end
 
-feature -- Logger
-
-	debug_log_display (a_string: STRING; to_file, to_display: BOOLEAN)
-			-- Combined file and display log
-		do
-			log_display (a_string, log_debug, to_file, to_display)
-		end
-
 feature {COLLECT_EXECUTION} -- Network IO
 
 	post (a_request: REQUEST_I): detachable STRING
 			-- Post `a_request' to remws
 		local
-			l_result: INTEGER
 			cl: DEFAULT_HTTP_CLIENT
 			sess: HTTP_CLIENT_SESSION
 			ctx: detachable HTTP_CLIENT_REQUEST_CONTEXT
@@ -271,7 +260,7 @@ feature {COLLECT_EXECUTION} -- Network IO
 				Result.set_outcome (error_code)
 				Result.set_message (error_message)
 			elseif l_xml_str /= Void then
-				debug_log_display(" <<< " + l_xml_str, True, False)
+				log_debug_display (" <<< " + l_xml_str, True, False)
 				Result.from_xml (l_xml_str, xml_parser)
 				l_xml_str.wipe_out
 			end

@@ -4,114 +4,132 @@ note
 	date: "$Date$"
 	revision: "$Revision$"
 
-class
+deferred class
 	APP_LOGGER
-
-inherit
-	LOGGING_I
-		rename
-			log as process_log
-		end
-
-	LOG_PRIORITY_CONSTANTS
-
-create
-	make
-
-feature {NONE} -- Initialization
-
-	make (a_log_path: PATH)
-			-- Initialize log on file
-		local
-			path: PATH
-		do
-			path := a_log_path
-			create logger.make
-			create file_logger.make_at_location (path)
-			file_logger.enable_debug_log_level
-			if attached logger as l_logger then
-				l_logger.register_log_writer (file_logger)
-				log_display (Void, "Log system initialized", log_information, True, True)
-			end
-		end
 
 feature -- Access
 
-	file_logger:  LOG_WRITER_FILE
-			-- the logger		
+	level: INTEGER
+			-- Possible log levels	emergency < alter < critical < error < warning < notice < information < debug
+            -- Default `0`, no logging at all.
+            -- See `is_accepted_level`
+
+feature -- Constants
+
+	level_emergency: INTEGER = 2
+			-- System is unusable
+
+	level_alert: INTEGER = 4
+			-- Action must be taken immediately
+
+	level_critical: INTEGER = 8
+			-- Critical conditions
+
+	level_error: INTEGER = 16
+			-- Error conditions
+
+	level_warning: INTEGER = 32
+			-- Warning conditions
+
+	level_notice: INTEGER = 64
+			-- Normal but significant condition
+
+	level_information: INTEGER = 128
+			-- Informational
+
+	level_debug: INTEGER = 256
+			-- Debug-level messages
 
 feature -- Change
 
-	set_log_level (a_log_level: INTEGER)
+	is_valid_log_level (lev: INTEGER): BOOLEAN
 		do
-			if     a_log_level = log_debug       then file_logger.enable_debug_log_level          -- 7
-			elseif a_log_level = log_information then file_logger.enable_information_log_level    -- 6
-			elseif a_log_level = log_notice      then file_logger.enable_notice_log_level         -- 5
-			elseif a_log_level = log_warning     then file_logger.enable_warning_log_level        -- 4
-			elseif a_log_level = log_error       then file_logger.enable_error_log_level          -- 3
-			elseif a_log_level = log_critical    then file_logger.enable_critical_log_level       -- 2
-			elseif a_log_level = log_alert       then file_logger.enable_alert_log_level          -- 1
-			elseif a_log_level = log_emergency   then file_logger.enable_emergency_log_level      -- 0
-			else
-				file_logger.enable_error_log_level -- 3
-			end
+			Result := lev >= 0 and lev <= level_debug
+		end
+
+	set_level (a_log_level: INTEGER)
+		require
+			is_valid_log_level (a_log_level)
+		do
+			level := a_log_level
 		end
 
 feature -- Basic operation
 
-	process_log (a_string: STRING; priority: INTEGER)
-			-- Logs `a_string'
+	is_accepted_level (a_level: INTEGER): BOOLEAN
+			-- Is `a_level` accepted to process the logging?
 		do
-			if attached logger as l_logger then
-				if priority = log_debug then l_logger.write_debug (a_string)
-					elseif priority = log_emergency   then l_logger.write_emergency (a_string)
-					elseif priority = log_alert       then l_logger.write_alert (a_string)
-					elseif priority = log_critical    then l_logger.write_critical (a_string)
-					elseif priority = log_error       then l_logger.write_error (a_string)
-					elseif priority = log_information then l_logger.write_information (a_string)
-					elseif priority = log_notice      then l_logger.write_notice (a_string)
-					elseif priority = log_warning     then l_logger.write_warning (a_string)
-				end
+			Result := a_level <= level
+		end
+
+	put (a_message: separate STRING_8; a_level: INTEGER)
+			-- Logs `a_string' for `a_level`.
+		require
+			is_valid_log_level (a_level)
+		do
+			if is_accepted_level (a_level) then
+				write (a_message)
 			end
 		end
 
-	log (a_string: separate STRING; priority: INTEGER)
-			-- Logs `a_string'
-		local
-			s: STRING
-		do
-			create s.make_from_separate (a_string)
-			process_log (s, priority)
+	close
+		require
+			is_logging_enabled
+		deferred
 		end
 
-	log_display (obj: detachable separate ANY; a_string: separate STRING; priority: INTEGER; to_file, to_display: BOOLEAN)
-			-- Combined file and display log
-		local
-			l_string: STRING
+feature {NONE} -- Implementation
+
+	write (a_message: separate STRING_8)
+		deferred
+		end
+
+feature -- Logging
+
+	put_emergency (a_message: separate STRING)
 		do
-			create l_string.make_from_separate (a_string)
-			if attached {EXCEPTIONS} obj as e and then attached e.class_name as cn then
-				l_string.prepend ("{" + cn + "} ")
-			else
-				l_string.prepend ("{NO_CLASS_NAME} ")
-			end
+			put (a_message, level_emergency)
+		end
 
-			if to_file then
-				process_log (l_string, priority)
-			end
-			if to_display then
-				io.put_string (l_string)
-				io.put_new_line
-			end
+	put_alert (a_message: separate STRING)
+		do
+			put (a_message, level_alert)
+		end
 
-			l_string.wipe_out
+	put_critical (a_message: separate STRING)
+		do
+			put (a_message, level_critical)
+		end
+
+	put_error (a_message: separate STRING)
+		do
+			put (a_message, level_error)
+		end
+
+	put_warning (a_message: separate STRING)
+		do
+			put (a_message, level_warning)
+		end
+
+	put_notice (a_message: separate STRING)
+		do
+			put (a_message, level_notice)
+		end
+
+	put_information (a_message: separate STRING)
+		do
+			put (a_message, level_information)
+		end
+
+	put_debug (a_message: separate STRING)
+		do
+			put (a_message, level_debug)
 		end
 
 feature -- Status report
 
 	is_logging_enabled: BOOLEAN
-		do
-			Result := logger /= Void
+		deferred
 		end
 
 end

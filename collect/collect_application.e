@@ -25,12 +25,9 @@ inherit
 			launch as env_launch
 		end
 
-	LOG_PRIORITY_CONSTANTS
 	DEFAULTS
 
 	MEMORY
-
-
 
 create
 	make_and_launch
@@ -51,7 +48,7 @@ feature {NONE} -- Initialization
 			else
 				create cfg_location.make_empty
 			end
-			create cfg.make (cfg_location)
+			create <NONE> cfg.make (cfg_location)
 			set_config (cfg)
 
 			-- garbage collection
@@ -79,15 +76,39 @@ feature {NONE} -- Initialization
 			initialize_logger (cfg.log_path)
 			idx := index_of_word_option ("l")
 			if idx > 0 then
-				set_log_level (argument (idx + 1).to_integer)
+				if attached argument (idx + 1) as l_arg then
+					if l_arg.is_integer then
+						set_log_level (argument (idx + 1).to_integer)
+					else
+						if l_arg.is_case_insensitive_equal ("emergency") then
+							set_log_level ({APP_LOGGER}.level_emergency)
+						elseif l_arg.is_case_insensitive_equal ("alert") then
+							set_log_level ({APP_LOGGER}.level_alert)
+						elseif l_arg.is_case_insensitive_equal ("critical") then
+							set_log_level ({APP_LOGGER}.level_critical)
+						elseif l_arg.is_case_insensitive_equal ("error") then
+							set_log_level ({APP_LOGGER}.level_error)
+						elseif l_arg.is_case_insensitive_equal ("warning") then
+							set_log_level ({APP_LOGGER}.level_warning)
+						elseif l_arg.is_case_insensitive_equal ("notice") then
+							set_log_level ({APP_LOGGER}.level_notice)
+						elseif l_arg.is_case_insensitive_equal ("information") then
+							set_log_level ({APP_LOGGER}.level_information)
+						elseif l_arg.is_case_insensitive_equal ("debug") then
+							set_log_level ({APP_LOGGER}.level_debug)
+						else
+							set_log_level (0) -- No logging!
+						end
+					end
+				end
 			else
-				set_log_level (log_error)
+				set_log_level ({APP_LOGGER}.level_error)
 			end
 
 			cfg.use_testing_ws := index_of_word_option ("t") > 0
 			cfg.is_utc_set := index_of_word_option ("u") > 0
 
-			check_remws_session (cfg)
+--			check_remws_session (cfg)
 		end
 
 	check_remws_session (cfg: COLLECT_CONFIGURATION)
@@ -102,14 +123,15 @@ feature {NONE} -- Initialization
 					-- do login
 					l_remws_session.do_login
 					if not l_remws_session.is_logged_in then
-						log_display ("FATAL error: unable to login", log_critical, True, True)
+						log_critical_display ("FATAL error: unable to login", True, True)
 						die(0)
 					else
-						log_display ("logged in with token " +
+						log_information_display ("logged in with token " +
 						             l_remws_session.token.id +
 						             " expiring upon " +
 						             l_remws_session.token.expiry.formatted_out (default_date_time_format),
-						             log_information, True, True)
+						             True, True
+						            )
 					end
 				end
 			else
@@ -134,14 +156,14 @@ feature -- Usage
 			print ("%T-u            the box running collect is in UTC%N")
 			print ("%T-h			prints this text%N")
 			print ("%TThe available logging levels are:%N")
-			print ("%T%T " + log_debug.out       + " --> debug-level messages%N")
-			print ("%T%T " + log_information.out + " --> informational%N")
-			print ("%T%T " + log_notice.out      + " --> normal but significant condition%N")
-			print ("%T%T " + log_warning.out     + " --> warning conditions%N")
-			print ("%T%T " + log_error.out       + " --> error conditions%N")
-			print ("%T%T " + log_critical.out    + " --> critical conditions%N")
-			print ("%T%T " + log_alert.out       + " --> action must be taken immediately%N")
-			print ("%T%T " + log_emergency.out   + " --> system is unusable%N%N")
+			print ("%T%T " + {APP_LOGGER}.level_debug.out       + " --> debug-level messages%N")
+			print ("%T%T " + {APP_LOGGER}.level_information.out + " --> informational%N")
+			print ("%T%T " + {APP_LOGGER}.level_notice.out      + " --> normal but significant condition%N")
+			print ("%T%T " + {APP_LOGGER}.level_warning.out     + " --> warning conditions%N")
+			print ("%T%T " + {APP_LOGGER}.level_error.out       + " --> error conditions%N")
+			print ("%T%T " + {APP_LOGGER}.level_critical.out    + " --> critical conditions%N")
+			print ("%T%T " + {APP_LOGGER}.level_alert.out       + " --> action must be taken immediately%N")
+			print ("%T%T " + {APP_LOGGER}.level_emergency.out   + " --> system is unusable%N%N")
 		end
 
 feature -- Attributes
