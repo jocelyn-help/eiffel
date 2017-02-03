@@ -10,10 +10,7 @@ inherit
 	DEFAULTS
 	ARGUMENTS
 	RDB_HANDLE
-	EXECUTION_ENVIRONMENT
-	rename
-		Command_line as env_command_line
-	end
+	SHARED_EXECUTION_ENVIRONMENT
 
 create
 	make
@@ -256,7 +253,6 @@ feature -- Process
 	get_last_dates (sensor: RT10_SENSOR)
 			-- Retrieve sensor's last date till current time
 		local
-			date:     DATE_TIME
 			queries:  TUPLE[STRING, STRING, STRING]
 			i:        INTEGER
 			l_tuple:  DB_TUPLE
@@ -800,7 +796,7 @@ feature -- Implementation
 	home_folder: STRING_32
 			-- Current user home folder
 		once
-			if( attached item("HOME") as l_home ) then
+			if attached execution_environment.item("HOME") as l_home then
 				create Result.make_from_string (l_home)
 			else
 				create Result.make_empty
