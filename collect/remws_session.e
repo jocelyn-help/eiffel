@@ -211,7 +211,7 @@ feature {COLLECT_EXECUTION} -- Network IO
 	post (a_request: REQUEST_I): detachable STRING
 			-- Post `a_request' to remws
 		local
-			cl: DEFAULT_HTTP_CLIENT
+			cl: NET_HTTP_CLIENT
 			sess: HTTP_CLIENT_SESSION
 			ctx: detachable HTTP_CLIENT_REQUEST_CONTEXT
 		do
