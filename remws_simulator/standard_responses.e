@@ -150,7 +150,9 @@ feature -- Standard responses xml messages
 		</s:Envelope>
 	]"
 
-	standard_stations_list_response: STRING = "[
+	standard_stations_list_response: STRING
+		once
+			Result := "[
 		<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/">
 		  <s:Body>
 		    <ElencoStazioniResponse xmlns="http://tempuri.org/">
@@ -237,6 +239,7 @@ feature -- Standard responses xml messages
 		              <Long_min>23</Long_min>
 		              <Long_sec>34.63800000</Long_sec>
 		            </Stazione>
+			]" + "[
 		            <Stazione>
 		              <IdStazione>7</IdStazione>
 		              <NomeStazione>Viola</NomeStazione>
@@ -860,6 +863,7 @@ feature -- Standard responses xml messages
 	     </s:Body>
 	   </s:Envelope>
 	]"
+		end
 
 	standard_sensor_types_list_response: STRING = "[
 		<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/">
